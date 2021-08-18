@@ -7,11 +7,13 @@ fn main() {
                 .split("\r\n")
                 .map(|c| i32::from_str_radix(c, 10).unwrap())
                 .collect::<HashSet<_>>();
-            
+
+            'search: // even loops can have lifetimes
             for i in &one {
                 for j in &one {
                     if one.contains(&(2020 - (i + j))) {
                         println!("{} {} {} {}", i, j,  2020 - (i + j), i * j * (2020 - (i + j)));
+                        break 'search; // exit the outer loop and therefore this loop
                     }
                 }
             }
