@@ -332,9 +332,10 @@ fn main() {
     let mut j = 0;
     let mut ans = 0;
     
-    let to_vector = INPUT.split("\n").collect::<Vec<_>>();
+    let to_vector = INPUT.split('\n').collect::<Vec<_>>();
     let length = to_vector.len();
     let row_length = to_vector[0].len();
+    
     while i < length {
         j += 3;
         j %= row_length;
