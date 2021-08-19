@@ -13,8 +13,8 @@ fn main() {
                 for j in &one {
                     if one.contains(&(2020 - (i + j))) {
                         println!("{} {} {} {}", i, j,  2020 - (i + j), i * j * (2020 - (i + j)));
-                        break 'search; // exit the outer loop and therefore this loop
-                    }
+                        break 'search; // exit the outer loop and therefore this loop.. can also say break 'search sth
+                    } // label/lifetime can also be used with continue...
                 }
             }
             
