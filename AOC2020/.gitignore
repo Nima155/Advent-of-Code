@@ -1,3 +1,4 @@
-input.txt
-mock-input.txt
-.rustc_info.json
+*.txt
+*.json
+*.TAG
+debug/
