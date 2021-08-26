@@ -26,9 +26,9 @@ fn main() {
                     number_of_moves * ((chars[0] == 'E') as i32)
                 };
             }
-            'L' | 'R' => {
+            val @ ('L' | 'R') => { // @ copies/moves the matched value into val
                 if number_of_moves != 360 {
-                    number_of_moves *= if chars[0] == 'L' { -1 } else { 1 };
+                    number_of_moves *= if val == 'L' { -1 } else { 1 };
 
                     let number_of_moves = (number_of_moves as f64).to_radians();
 
