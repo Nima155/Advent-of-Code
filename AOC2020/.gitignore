@@ -2,3 +2,4 @@
 *.json
 *.TAG
 debug/
+release/
