@@ -22,23 +22,21 @@ pub fn parse_input_to_grids(read: &str) -> HashMap<u32, Vec<Vec<char>>> {
     ret
 }
 
-fn flip(vec: &Vec<Vec<char>>) -> Vec<Vec<char>> {
-    vec.iter().rev().map(|e| e.clone()).collect()
-    // .map(|r| r.iter().rev().map(|c| *c).collect::<Vec<_>>())
-    // .collect()
+fn flip(vec: &[Vec<char>]) -> Vec<Vec<char>> {
+    vec.iter().rev().cloned().collect()
 }
 
-fn rotate(vec: &Vec<Vec<char>>) -> Vec<Vec<char>> {
+fn rotate(vec: &[Vec<char>]) -> Vec<Vec<char>> {
     vec.iter()
         .enumerate()
         .map(|(i, _row)| vec.iter().map(|f| f[i]).rev().collect::<Vec<_>>())
         .collect()
 }
 
-pub fn produce_rotations_and_flippations_d(vec: &Vec<Vec<char>>) -> Vec<Vec<Vec<char>>> {
+pub fn produce_rotations_and_flippations_d(vec: &[Vec<char>]) -> Vec<Vec<Vec<char>>> {
     let mut ans = Vec::with_capacity(8);
 
-    ans.push(vec.clone());
+    ans.push(vec.to_owned());
 
     for _i in 0..4 {
         let last = ans.last().unwrap();
@@ -50,14 +48,10 @@ pub fn produce_rotations_and_flippations_d(vec: &Vec<Vec<char>>) -> Vec<Vec<Vec<
         ans.push(rotated);
     }
 
-    return ans;
+    ans
 }
 
-fn compare_borders(
-    parent: &Vec<Vec<char>>,
-    child: &Vec<Vec<char>>,
-    parent_is_on_top: bool,
-) -> bool {
+fn compare_borders(parent: &[Vec<char>], child: &[Vec<char>], parent_is_on_top: bool) -> bool {
     if parent_is_on_top {
         // println!("{:?} {:?}", parent.last().unwrap(), child.first().unwrap());
         parent.last().unwrap() == child.first().unwrap()
@@ -73,11 +67,8 @@ pub fn find_winning_combination(
     grids: &HashMap<u32, Vec<Vec<char>>>,
     mut map_so_far: Vec<Vec<(u32, usize)>>, // [col[row[grid[....]]]]
     mut vis: HashSet<u32>,
-    (threshold, mut row): (i32, i32),
+    (threshold, row): (i32, i32),
     combinations: &HashMap<u32, Vec<Vec<Vec<char>>>>,
-    cache: &mut HashMap<(u32, usize, i32, u32, u32, u32), bool>, // id row col idT idL orientation
-    last: u32,
-    last_orientation: u32,
 ) -> (bool, HashSet<u32>, Vec<Vec<(u32, usize)>>) {
     if vis.len() == grids.len() {
         return (true, vis, map_so_far);
@@ -103,7 +94,6 @@ pub fn find_winning_combination(
                             false,
                         ))
                 {
-                    let row_length = if map_t_len != 0 { map_t_len - 1 } else { 0 };
                     let (vis_bef, map_bef) = (vis.clone(), map_so_far.clone());
                     vis.insert(*id);
 
@@ -119,9 +109,6 @@ pub fn find_winning_combination(
                         vis,
                         (threshold, row),
                         combinations,
-                        cache,
-                        last,
-                        last_orientation,
                     );
                     if ans {
                         return (ans, vis_1, mapo);
