@@ -47,8 +47,7 @@ pub fn play_the_long_game(
                     .zip([p1, p2])
                     .map(|f| {
                         f.0.iter()
-                            .cloned()
-                            .take(f.1 as usize)
+                            .take(f.1 as usize).cloned()
                             .collect::<VecDeque<_>>()
                     })
                     .collect::<Vec<_>>();
