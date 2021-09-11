@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-#[derive(Debug)]
+use std::collections::{HashMap, VecDeque};
+#[derive(Clone)]
 pub enum Rule<'a> {
     IndirectRule(u64, Vec<Vec<u64>>),
     DirectRule(u64, &'a str),
 }
 
-fn parse_rule<'a>(line: &'a str) -> Rule<'a> {
+fn parse_rule(line:  &str) -> Rule {
     let twos = line.split(": ").collect::<Vec<&str>>();
 
     let key = twos[0].parse::<u64>().unwrap();
@@ -53,93 +53,50 @@ pub fn parse_overall<'a>(lines: &[&'a str]) -> (HashMap<u64, Rule<'a>>, Vec<&'a 
     }
     (rules, messages)
 }
+// To make the matcher work with part 2 the trick was recognizing the need to break out of the function once
+//  the end of the string is reached while also checking that the last step completed was a
+//  recursion and treat that as a success. Otherwise, if the last step wasn't recursive it means the
+// end of the string was reached in the middle of a rule check and fails.
 
 pub fn check_message(
     rules: &HashMap<u64, Rule>,
     message: &str,
-    cur_rule: &Rule,
-    mut msg_indx: usize,
-) -> (bool, usize) {
-    let mut mt = true;
-    
-    if msg_indx >= message.len() {
-        return (false, msg_indx);
+    rules_to_match: &mut VecDeque<Rule>,
+) -> bool {
+    // println!("{}", message);
+    if rules_to_match.is_empty() || message.is_empty() {
+        return rules_to_match.is_empty() && message.is_empty();
     }
-    
-    match cur_rule {
-        &Rule::DirectRule(_rule_num, msg) => {
-            
-            mt &= msg == &message[msg_indx..msg.len() + msg_indx];
-            
-            if mt {
-                msg_indx += msg.len();
+
+    match &rules_to_match[0] {
+        Rule::DirectRule(_c, car) => {
+            if car.chars().next().unwrap() == message.chars().next().unwrap() {
+                let mut rulesy = rules_to_match.clone();
+                rulesy.pop_front();
+
+                return check_message(rules, &message[1..], &mut rulesy);
             }
         }
-        &Rule::IndirectRule(rule_num, ref others) => match rule_num {
-            8 | 11 => {
-                let (mut matches_42, mut prev, mut prev_success): (usize, i32, bool) = (0, -1, false);
-                loop {
-                    if prev != -1 && msg_indx == (prev as usize) {
-                        return (prev_success, msg_indx);
-                    }
-                    let (status, i) = check_message(rules, message, rules.get(&42).unwrap(), msg_indx);
 
-                    prev = msg_indx as i32;
-                    prev_success = status;
-                    
-                    if status && i == message.len() {
-                        println!("true");
-                        return (true, i);
-                    }
+        Rule::IndirectRule(_o, ref rest) => {
+            for r in rest {
+                let mut clonesy = rules_to_match.clone();
+                clonesy.pop_front();
 
-                    if rule_num == 11 || matches_42 >= 1 && rule_num != 11 {
-                        let (stat1, mut ij) = check_message(rules, message, rules.get(&31).unwrap(), i);
-                        if stat1 {
-                            if ij == message.len() {
-                                println!("true");
-                                return (true, ij);
-                            }
-                            let mut matches_31 = 1;
-                            loop {
-                                let (stat2, iji) = check_message(rules, message, rules.get(&31).unwrap(), ij);
-                                if !stat2 {
-                                    return (false, iji);
-                                } else if iji == message.len() && matches_42 - 1 == matches_31 {
-                                    println!("true");
-                                    return (true, iji);
-                                } else if iji == message.len() && matches_42 - 1 != matches_31 {
-                                    return (false, iji);
-                                }
-                                matches_31 += 1;
-                                ij = iji;
-                            }
-                            
-                        }
-                    }
-                    
-                    matches_42 += 1;
-                    msg_indx = i;
+                for e in r.iter().rev() {
+                    clonesy.push_front(rules.get(e).unwrap().clone());
+                }
+
+                let status = check_message(rules, message, &mut clonesy);
+
+                if status {
+                    return true;
                 }
             }
-            _ => {
-                mt &= others.iter().any(|e| {
-                    let mut inner_indx = msg_indx;
-                    let ans = e.iter().all(|c| {
-                        let (stat, i) =
-                            check_message(rules, message, rules.get(c).unwrap(), inner_indx);
-                        inner_indx = i;
-                        stat
-                    });
-                    if ans {
-                        msg_indx = inner_indx
-                    }
-                    ans
-                });
-            }
-        },
+        }
     }
-    // println!("{} {}", mt, msg_indx == message.len());
-    (mt, msg_indx)
+
+    false
 }
 
 // cache.insert((message, msg_indx), (mt, msg_indx));
@@ -161,14 +118,15 @@ pub fn main_logic<'a>(lines: &[&'a str]) -> u64 {
     let mut ans = 0;
 
     for l in messages {
-        let (status, _i) = check_message(&rules, l, rules.get(&0).unwrap(), 0);
-        if status {
-            println!("{} {}", l, _i == l.len());
-        }
+        let status = check_message(
+            &rules,
+            l,
+            &mut VecDeque::from([rules.get(&0).unwrap().clone()]),
+        );
 
-        ans += (status) as u64;
+        ans += status as u64;
     }
-
+    println!("{}", ans);
     ans
     // complete matches_42 of rule 0
 }
