@@ -1,5 +1,8 @@
 mod algorithms;
-use std::{collections::{HashMap, HashSet}, fs};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+};
 
 use algorithms::{find_closest_to_point_of_origin, find_visited_points};
 fn main() {
@@ -10,21 +13,33 @@ fn main() {
         .split("\r\n")
         .map(|f| {
             f.split(',')
-                .map(|f| (&f[0..1], *&f[1..].parse::<u64>().unwrap()))
+                .map(|f| (&f[0..1], f[1..].parse::<u64>().unwrap()))
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
 
-    let mut the_two_sets_of_visited_points: [(HashSet<(i32, i32)>, HashMap<(i32, i32), u32>); 2] =
-        [(HashSet::new(), HashMap::new()), (HashSet::new(), HashMap::new())];
+    let mut the_two_sets_of_visited_points: [(HashSet<(i32, i32)>, HashMap<(i32, i32), u32>); 2] = [
+        (HashSet::new(), HashMap::new()),
+        (HashSet::new(), HashMap::new()),
+    ];
 
     for (i, instruction) in instructions.iter().enumerate() {
-        the_two_sets_of_visited_points[i] = find_visited_points(&instruction);
+        the_two_sets_of_visited_points[i] = find_visited_points(instruction);
     }
 
-    let new_one = the_two_sets_of_visited_points[0].0
+    let new_one = the_two_sets_of_visited_points[0]
+        .0
         .intersection(&the_two_sets_of_visited_points[1].0)
         .collect::<HashSet<_>>();
 
-    println!("{}", find_closest_to_point_of_origin(&new_one, &[&the_two_sets_of_visited_points[1].1, &the_two_sets_of_visited_points[0].1]));
+    println!(
+        "{}",
+        find_closest_to_point_of_origin(
+            &new_one,
+            &[
+                &the_two_sets_of_visited_points[1].1,
+                &the_two_sets_of_visited_points[0].1
+            ]
+        )
+    );
 }
