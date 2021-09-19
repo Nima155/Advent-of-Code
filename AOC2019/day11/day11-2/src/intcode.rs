@@ -104,44 +104,15 @@ pub fn run_the_program(program: &mut HashMap<usize, i64>) -> HashMap<(i32, i32),
                         *program.entry(parameter as usize).or_default()
                     };
 
-                    match output_flag {
-                        -1 => {
-                            painted_panels.insert(cur_pos, if ot == 1 { true } else { false });
-                            output_flag = 1;
-                        }
-                        _ => {
-                            if ot == 0 {
-                                cur_rot = if cur_rot != 0 { cur_rot - 1 } else { 3 };
-                            } else {
-                                cur_rot = (cur_rot + 1) % 4
-                            }
-                            cur_pos.0 += ROTATIONS[cur_rot][0] as i32;
-                            cur_pos.1 += ROTATIONS[cur_rot][1] as i32;
-                            output_flag = -1;
-                        }
-                    }
+                    handle_robot_output(&mut output_flag, &mut painted_panels, ot, &mut cur_pos, &mut cur_rot);
                 }
                 204 => {
                     let ot = *program
                         .entry((parameter + relative_base) as usize)
                         .or_default();
 
-                    match output_flag {
-                        -1 => {
-                            painted_panels.insert(cur_pos, if ot == 1 { true } else { false });
-                            output_flag = 1;
-                        }
-                        _ => {
-                            if ot == 0 {
-                                cur_rot = if cur_rot != 0 { cur_rot - 1 } else { 3 };
-                            } else {
-                                cur_rot = (cur_rot + 1) % 4
-                            }
-                            cur_pos.0 += ROTATIONS[cur_rot][0] as i32;
-                            cur_pos.1 += ROTATIONS[cur_rot][1] as i32;
-                            output_flag = -1;
-                        }
-                    }
+                    handle_robot_output(&mut output_flag, &mut painted_panels, ot, &mut cur_pos, &mut cur_rot);
+                    
                 }
 
                 3 => {
@@ -216,4 +187,22 @@ pub fn build_grid(painted_tiles: &HashMap<(i32, i32), bool>) {
         }
     }
     println!("{:?}", grid);
+}
+fn handle_robot_output(output: &mut i32, painted_panels: &mut HashMap<(i32, i32), bool>, ot: i64, cur_pos: &mut (i32, i32), cur_rot: &mut usize) {
+    match output {
+        -1 => {
+            painted_panels.insert(*cur_pos,  ot == 1);
+            *output = 1;
+        }
+        _ => {
+            if ot == 0 {
+                *cur_rot = if *cur_rot != 0 { *cur_rot - 1 } else { 3 };
+            } else {
+                *cur_rot = (*cur_rot + 1) % 4
+            }
+            cur_pos.0 += ROTATIONS[*cur_rot][0] as i32;
+            cur_pos.1 += ROTATIONS[*cur_rot][1] as i32;
+            *output = -1;
+        }
+    }
 }
