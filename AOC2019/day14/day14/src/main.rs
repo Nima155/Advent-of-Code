@@ -4,38 +4,35 @@ fn main() {
 
     let mapped = parse(&read);
 
-    
-    
     let mut mappy = HashMap::new();
-    // part 2 
+    // part 2
     println!("{}", backward_dfs(&mapped, "FUEL", 1, &mut mappy) as i64);
     println!("{}", part_2(&mapped))
 }
 // start from fuel and build up from there ?
-fn part_2(mapped: &HashMap<&str, (u64, Vec<(u64, &str)>)>) -> u64 {
+type Chemicals<'a> = HashMap<&'a str, (u64, Vec<(u64, &'a str)>)>;
+
+fn part_2(mapped: &Chemicals) -> u64 {
     let cap = 1_000_000_000_000i64;
     let (mut end, mut start) = (10000000, 1);
 
     while start <= end {
         let middle = (end + start) / 2;
         let anso = backward_dfs(mapped, "FUEL", middle as u64, &mut HashMap::new()) as i64;
-        
+
         let val = cap - anso;
         if val < 0 {
             end = middle - 1;
-        } 
-        else if val > 0 {
+        } else if val > 0 {
             start = middle + 1;
-        }
-        else {
+        } else {
             return middle as u64;
         }
-
     }
-    
+
     end as u64
 }
-fn parse(read: &str) -> HashMap<&str, (u64, Vec<(u64, &str)>)> {
+fn parse(read: &str) -> Chemicals {
     read.split("\r\n")
         .map(|l| {
             let chemicals = l.split("=>").collect::<Vec<_>>();
@@ -61,7 +58,7 @@ fn parse(read: &str) -> HashMap<&str, (u64, Vec<(u64, &str)>)> {
 }
 
 fn backward_dfs<'a>(
-    chemicals: &'a HashMap<&str, (u64, Vec<(u64, &str)>)>,
+    chemicals: &'a Chemicals,
     cur_chem: &'a str,
     mut req_am: u64,
     rems: &mut HashMap<&'a str, u64>,
@@ -71,21 +68,25 @@ fn backward_dfs<'a>(
 
     if rems.contains_key(cur_chem) {
         let get_em = rems.get_mut(cur_chem).unwrap();
-        
-        match *get_em >= req_am  {
-            true => { *get_em -= req_am; return 0; },
-            false => { req_am -= *get_em; *get_em = 0; },
+
+        match *get_em >= req_am {
+            true => {
+                *get_em -= req_am;
+                return 0;
+            }
+            false => {
+                req_am -= *get_em;
+                *get_em = 0;
+            }
         }
     }
-
 
     let will_be_given = chemicals.get(cur_chem).unwrap().0;
 
     let tots = (req_am as f64 / will_be_given as f64).ceil() as u64;
 
     let rem = (tots * will_be_given) - req_am;
-    
-    
+
     if rem != 0 {
         match rems.get_mut(cur_chem) {
             Some(z) => {
@@ -96,13 +97,13 @@ fn backward_dfs<'a>(
             }
         }
     }
-    
+
     for (d, ot) in &chemicals.get(cur_chem).unwrap().1 {
         if *ot == "ORE" {
             return *d * tots;
         }
-        let zz = backward_dfs(chemicals, *ot, *d * tots , rems);
-        
+        let zz = backward_dfs(chemicals, *ot, *d * tots, rems);
+
         ans += zz;
     }
 
