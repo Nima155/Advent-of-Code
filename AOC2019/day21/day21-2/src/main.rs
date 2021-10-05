@@ -1,0 +1,247 @@
+use std::{
+    collections::{HashMap, VecDeque},
+    fs,
+};
+fn main() {
+    let read = fs::read_to_string("../input.txt").unwrap();
+
+    let mut program = read
+        .split(',')
+        .enumerate()
+        .map(|(i, f)| (i, f.parse::<i64>().unwrap()))
+        .collect::<HashMap<_, _>>();
+    // more of a pen and paper question
+// "OR D T", "NOT F T", "NOT E T",
+    run_the_program(
+        &mut program,
+        [
+            "NOT A T", "NOT B T", "NOT C T", "AND D T", "AND H T",
+            "NOT F J", "NOT E J", "NOT C J", "NOT B J", "AND D J", "AND H J", "OR T J","NOT A T", "OR T J", "RUN",
+        ]
+        .iter()
+        .map(|s| {
+            let mut veco = s.chars().map(|c| c as u8).collect::<VecDeque<_>>();
+            veco.push_back(b'\n');
+            veco
+        })
+        .flatten()
+        .collect::<VecDeque<_>>(),
+    );
+    //         Register E indicates whether there is ground five tiles away.
+    // Register F indicates whether there is ground six tiles away.
+    // Register G indicates whether there is ground seven tiles away.
+    // Register H indicates whether there is ground eight tiles away.
+    // Register I indicates whether there is ground nine tiles away.
+}
+
+// Opcode 3 takes a single integer as input and saves it to the position given by its only parameter.
+// For example, the instruction 3,50 would take an input value and store it at address 50.
+// Opcode 4 outputs the value of its only parameter. For example, the instruction 4,50 would output the value at address 50.
+
+// Now, your ship computer will also need to handle parameters in mode 1, immediate mode. In immediate mode,
+// a parameter is interpreted as a value - if the parameter is 50, its value is simply 50.
+// 0 is position mode
+
+// first 2 op codes then rest position modes
+fn run_the_program(program: &mut HashMap<usize, i64>, mut inputs: VecDeque<u8>) -> i64 {
+    let mut instruction_pointer = 0;
+    let mut relative_base = 0;
+    let mut lo;
+    loop {
+        let cur_instruction = *program.entry(instruction_pointer).or_default();
+        let last_digit = cur_instruction % 10;
+        // println!("instruction: {}", cur_instruction);
+        if cur_instruction != 99
+            && is_valid_instruction(cur_instruction)
+            && is_valid_op(cur_instruction)
+            || (cur_instruction < 10 && is_valid_op(cur_instruction))
+        {
+            let mut modes = extract_parameter_modes(cur_instruction);
+
+            let mut arrs = [
+                *program.entry(instruction_pointer + 1).or_default(),
+                *program.entry(instruction_pointer + 2).or_default(),
+                *program.entry(instruction_pointer + 3).or_default(),
+            ];
+            // println!("instruction: {}", cur_instruction);
+            let length = arrs.len() - 1;
+            for i in arrs[..length].iter_mut() {
+                let mode = modes.pop_back().or(Some(0)).unwrap();
+                if mode != 1 {
+                    // println!("{} {}", *i  + is_in_2nd_gear(mode, relative_base), cur_instruction);
+                    *i = *program
+                        .entry((*i + is_in_2nd_gear(mode, relative_base)) as usize)
+                        .or_default();
+                }
+            }
+            // println!("{} inst", cur_instruction);
+            let [indx_f1, indx_f2, indx_dest_u] = arrs;
+            let indx_dest_u = if !modes.is_empty() && modes.pop_back().unwrap() == 2 {
+                indx_dest_u + relative_base
+            } else {
+                indx_dest_u
+            } as usize;
+
+            match last_digit {
+                1 => {
+                    program.insert(indx_dest_u, indx_f1 + indx_f2);
+                }
+                2 => {
+                    program.insert(indx_dest_u, indx_f1 * indx_f2);
+                }
+                7 => {
+                    program.insert(indx_dest_u, if indx_f1 < indx_f2 { 1 } else { 0 });
+                }
+                8 => {
+                    program.insert(indx_dest_u, if indx_f1 == indx_f2 { 1 } else { 0 });
+                }
+                5 if indx_f1 != 0 => {
+                    instruction_pointer = indx_f2 as usize;
+                    continue;
+                }
+                6 if indx_f1 == 0 => {
+                    instruction_pointer = indx_f2 as usize;
+                    continue;
+                }
+
+                9 => {
+                    relative_base += indx_f1;
+                    instruction_pointer += 2;
+                    continue;
+                }
+                5 | 6 => {
+                    instruction_pointer += 3;
+                    continue;
+                }
+                // 99 => break,
+                _ => {}
+            };
+            instruction_pointer += 4;
+        } else {
+            let parameter = *program.entry(instruction_pointer + 1).or_default();
+            // println!("param: {} cur_inst: {} offset: {}", parameter, cur_instruction, relative_base);
+
+            // println!("{} ops", cur_instruction);
+            match cur_instruction {
+                // 203 too low
+                4 | 104 => {
+                    lo = if cur_instruction == 104 {
+                        parameter
+                    } else {
+                        *program.entry(parameter as usize).or_default()
+                    };
+                    println!("{}", lo );
+                }
+                204 => {
+                    lo = *program
+                        .entry((parameter + relative_base) as usize)
+                        .or_default();
+                    println!("{}", lo );
+                }
+
+                3 => {
+                    program.insert(parameter as usize, inputs.pop_front().unwrap() as i64);
+                }
+
+                203 => {
+                    program.insert(
+                        (parameter + relative_base) as usize,
+                        inputs.pop_front().unwrap() as i64,
+                    );
+                }
+
+                99 => {
+                    break;
+                }
+                _ => {}
+            }
+            instruction_pointer += 2;
+        }
+    }
+
+    *program.entry(0).or_default()
+}
+
+fn is_valid_instruction(mut num: i64) -> bool {
+    num /= 100;
+    while num > 0 {
+        if num % 10 != 0 && num % 10 != 1 && num % 10 != 2 {
+            return false;
+        }
+
+        num /= 10
+    }
+    true
+}
+fn is_valid_op(num: i64) -> bool {
+    let last_dig = num % 10;
+
+    [1, 2, 7, 8, 5, 6, 9].contains(&last_dig)
+}
+
+fn extract_parameter_modes(mut num: i64) -> VecDeque<i64> {
+    let mut ans = VecDeque::with_capacity(5);
+    num /= 100;
+    while num > 0 {
+        ans.push_front(num % 10);
+        num /= 10;
+    }
+    ans.shrink_to_fit();
+    ans
+}
+
+fn is_in_2nd_gear(mode: i64, relative_base: i64) -> i64 {
+    if mode == 2 {
+        relative_base
+    } else {
+        0
+    }
+}
+
+// const WRITABLE_REGISTERS: [u8; 2] = [b'T', b'J'];
+// const READABLE_REGISTERS: [u8; 6] = [b'D', b'C', b'B', b'A', b'T', b'J'];
+// const OPERATORS: [&str; 3] = ["AND", "OR", "NOT"];
+
+// fn instruction_factor(instruction: VecDeque<u8>, cycle: usize, program: &mut HashMap<usize, i64>, visited: &mut HashSet<VecDeque<u8>>) -> bool {
+//     if cycle > 0 {
+//         if visited.contains(&instruction) {
+//             return false;
+//         }
+
+//         let mut cloned = instruction.clone();
+//         visited.insert(cloned.clone());
+
+//         cloned.append(&mut VecDeque::from([b'W', b'A', b'L', b'K', b'\n']));
+//         run_the_program(&mut program.clone(), cloned);
+
+//         if cycle >= 14 {
+//             return false;
+//         }
+
+//     }
+//     // AND T J
+//     // WALK
+//     // 15 instrcutions
+
+//     for op in OPERATORS {
+//         let mut cloned_instructions = instruction.clone();
+//         for c in op.chars() {
+//             cloned_instructions.push_back(c as u8);
+//         }
+//         cloned_instructions.push_back(b' ');
+//         for b in READABLE_REGISTERS {
+//             let mut clone_of_clone = cloned_instructions.clone();
+//             clone_of_clone.push_back(b);
+//             clone_of_clone.push_back(b' ');
+//             for j in WRITABLE_REGISTERS {
+//                 let mut clone_of_clone_of_clone = clone_of_clone.clone();
+//                 clone_of_clone_of_clone.push_back(j);
+//                 clone_of_clone_of_clone.push_back(b'\n');
+//                 if instruction_factor(clone_of_clone_of_clone, cycle + 1, program, visited) {
+//                     return true;
+//                 }
+//             }
+//         }
+//     }
+//     false
+// }
