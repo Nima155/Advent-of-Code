@@ -16,7 +16,7 @@ fn main() {
         .collect::<Vec<_>>();
 
     // println!("{}", (-11 % 2) + 2);
-    
+
     println!("{}", play_cards(&actions));
 }
 const M: i128 = 119315717514047_i128;
@@ -31,7 +31,7 @@ impl Lcf {
         // println!("{} {} {} {}", self.a, a, m, self.b);
         // let m = if  (self.a * a) % m == 0 { m - 1 } else { m };
         Self {
-            a: (((self.a * a) % M) +M) % M,
+            a: (((self.a * a) % M) + M) % M,
             b: (((b + (a * self.b)) % M) + M) % M,
         }
     }
@@ -44,41 +44,28 @@ impl Default for Lcf {
 }
 
 fn play_cards(actions: &[String]) -> i128 {
-    
-
-    
     // input is prime.. and sequence is repeated on prime!
     let mut initial: Lcf = Lcf::default();
     for act in actions {
         match (act.contains("stack"), act.contains("inc")) {
             (true, _) => {
-               initial = initial.compose((-1, -1)); 
-               
-               
+                initial = initial.compose((-1, -1));
             }
             (_, true) => {
                 let num = act.split_at(3).1.trim().parse::<i128>().unwrap();
                 initial = initial.compose((num, 0));
-                
-                
             }
             (_, _) => {
                 let num = act.split_at(3).1.trim().parse::<i128>().unwrap();
-                initial =initial.compose((1, -num)); 
-                
-                
+                initial = initial.compose((1, -num));
             }
         }
         // println!("{}  {}", initial.a, initial.b);
     }
     let resultant_lcf = pow_compose(initial, 101741582076661);
-    
-    ((((2020 - resultant_lcf.b) * pow_mod(resultant_lcf.a, M - 2)) % M) + M) % M 
 
-    
+    ((((2020 - resultant_lcf.b) * pow_mod(resultant_lcf.a, M - 2)) % M) + M) % M
 }
-
-
 
 fn pow_compose(mut f: Lcf, mut k: i128) -> Lcf {
     let mut g = Lcf { a: 1, b: 0 };
@@ -90,17 +77,17 @@ fn pow_compose(mut f: Lcf, mut k: i128) -> Lcf {
         f = f.compose((f.a, f.b));
     }
     g
-} 
+}
 // repeated code.. but hey...
 fn pow_mod(mut f: i128, mut k: i128) -> i128 {
     let mut g: i128 = 1;
-    
+
     while k > 0 {
-        if &k % 2 != 0 {
-            g = (g * &f) % M
+        if k % 2 != 0 {
+            g = (g * f) % M
         }
         k /= 2;
-        f = (&f * &f) % M;
+        f = (f * f) % M;
     }
     g
-} 
+}
