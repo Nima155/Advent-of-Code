@@ -1,6 +1,7 @@
 use std::fs;
 
 // Main idea comes from code forces.. I would not have been able to solve this without the help of other people.
+// https://codeforces.com/blog/entry/72593
 fn main() {
     let lines = fs::read_to_string("../input.txt").unwrap();
 
@@ -64,7 +65,7 @@ fn play_cards(actions: &[String]) -> i128 {
     }
     let resultant_lcf = pow_compose(initial, 101741582076661);
 
-    ((((2020 - resultant_lcf.b) * pow_mod(resultant_lcf.a, M - 2)) % M) + M) % M
+    ((((2020 - resultant_lcf.b) * pow_mod(resultant_lcf.a, M - 2)) % M) + M) % M // 
 }
 
 fn pow_compose(mut f: Lcf, mut k: i128) -> Lcf {
