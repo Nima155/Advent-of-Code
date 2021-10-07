@@ -69,7 +69,7 @@ fn play_cards(actions: &[String]) -> i128 {
 }
 
 fn pow_compose(mut f: Lcf, mut k: i128) -> Lcf {
-    let mut g = Lcf { a: 1, b: 0 };
+    let mut g = Lcf::default();
     while k > 0 {
         if k % 2 != 0 {
             g = g.compose((f.a, f.b));
