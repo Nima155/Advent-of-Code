@@ -6,7 +6,7 @@ use std::{
 };
 
 fn main() {
-    let read = fs::read_to_string("./input.txt").unwrap();
+    let read = fs::read_to_string("../input.txt").unwrap();
 
     let mut program = read
         .split(',')
@@ -229,6 +229,7 @@ fn is_in_2nd_gear(mode: i64, relative_base: i64) -> i64 {
 }
 
 fn output_handler(queue: &mut HashMap<usize, VecDeque<i64>>, last_address: &mut i64, ot: i64, status_255: &mut i32) {
+    
     if *last_address == -1 {
         if ot == 255 {
             *status_255 += 1;
