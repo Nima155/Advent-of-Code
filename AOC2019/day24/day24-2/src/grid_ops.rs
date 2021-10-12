@@ -53,8 +53,8 @@ fn neighbor_reducer(
         }
         _ => {}
     }
-    if ny == ((g_y / 2) as i8) && nx == ((g_x / 2) as i8) {
-        if grids.contains_key(&(cur_depth + 1)) {
+    if ny == ((g_y / 2) as i8) && nx == ((g_x / 2) as i8) && grids.contains_key(&(cur_depth + 1)) {
+        
             let grid = grids.get(&(cur_depth + 1)).unwrap();
             match (
                 prev_y == g_y / 2 + 1,
@@ -80,13 +80,13 @@ fn neighbor_reducer(
                 }
                 _ => {}
             }
-        } 
+        
     }
     0
 }
 
 fn grid_tarzan(grids: &mut BTreeMap<i64, Vec<Vec<char>>>) {
-    let mut grid_clone = grids.clone();
+    let grid_clone = grids.clone();
     let mut actual = BTreeMap::new();
     
     for (k, last) in grids.iter_mut() {
@@ -149,7 +149,7 @@ pub fn conway_small(grid: &[Vec<char>]) {
         
         min += 1;
     }
-    println!("{:?}", grids.iter().map(|(k, v)| v.iter().flatten().filter(|c| **c == '#').count()).sum::<usize>());
+    println!("{:?}", grids.iter().map(|(_, v)| v.iter().flatten().filter(|c| **c == '#').count()).sum::<usize>());
     
 }
 // A bug dies (becoming an empty space) unless there is exactly one bug adjacent to it.
