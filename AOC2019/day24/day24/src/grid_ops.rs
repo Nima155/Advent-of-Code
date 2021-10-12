@@ -2,10 +2,10 @@ use std::collections::HashSet;
 
 const MOVES: [[i8; 2]; 4] = [[0, 1], [1, 0], [0, -1], [-1, 0]];
 
-pub fn conway_small(grid: &Vec<Vec<char>>) {
+pub fn conway_small(grid: &[Vec<char>]) {
     let mut visited: HashSet<Vec<Vec<char>>> = HashSet::new();
 
-    let mut last = grid.clone();
+    let mut last = grid.to_owned();
 
     while !visited.contains(&last) {
         visited.insert(last.clone());
