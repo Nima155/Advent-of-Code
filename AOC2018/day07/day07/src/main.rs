@@ -24,7 +24,7 @@ fn main() {
         .into_iter()
         .filter(|e| !job_map.contains_key(*e))
         .collect();
-    // println!("{:?} \n{:?}", job_map, initial_nodes);
+    
     println!("{}", topological_sort(&mut initial_nodes, &mut job_map));
 
     // 1 and 7... one must be done before seven
@@ -36,10 +36,11 @@ fn topological_sort<'a>(
 ) -> String {
     let mut ans = String::new();
     let mut visited = HashSet::new();
+    let cloned_job_map = job_map.clone();
     while !initial_nodes.is_empty() {
         let node = initial_nodes.pop_first().unwrap();
         ans.push_str(node);
-        for (n, _) in job_map.clone() {
+        for (n, _) in cloned_job_map.iter() {
             job_map.get_mut(n).unwrap().remove(node);
             if job_map.get(n).unwrap().is_empty() && !visited.contains(n) {
                 initial_nodes.insert(n);
