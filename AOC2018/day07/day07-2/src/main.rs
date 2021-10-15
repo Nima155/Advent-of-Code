@@ -1,0 +1,79 @@
+#![feature(map_first_last)]
+
+use std::{
+    collections::{BTreeSet, HashMap, HashSet},
+    fs,
+};
+fn main() {
+    let lines = fs::read_to_string("../input.txt").unwrap();
+    let mut job_map: HashMap<&str, HashSet<&str>> = HashMap::new();
+    let mut initial_nodes = BTreeSet::new();
+
+    for l in lines.split("\r\n") {
+        let stuff = l.split(' ').collect::<Vec<_>>();
+
+        let (job_bef, job_aft) = (stuff[1], stuff[7]);
+
+        let entry = job_map.entry(job_aft).or_default();
+
+        entry.insert(job_bef);
+        initial_nodes.insert(job_aft);
+        initial_nodes.insert(job_bef);
+    }
+    initial_nodes = initial_nodes
+        .into_iter()
+        .filter(|e| !job_map.contains_key(*e))
+        .collect();
+    
+    println!("{}", topological_sort(&mut initial_nodes, &mut job_map));
+
+    // 1 and 7... one must be done before seven
+}
+
+fn topological_sort<'a>(
+    initial_nodes: &'a mut BTreeSet<&'a str>,
+    job_map: &'a mut HashMap<&'a str, HashSet<&'a str>>,
+) -> usize {
+    let mut ans = String::new();
+    let mut visited = HashSet::new();
+    let cloned_job_map = job_map.clone();
+    let mut workers = [(0, ""); 5];
+    let mut time = 0;
+    while !(initial_nodes.is_empty() && workers.iter().all(|f| !f.1.is_empty() && f.0 == 0)) {
+        
+        for (w, work) in workers.iter_mut() {
+            if *w > 0 {
+                *w -= 1;
+                if *w == 0 {
+                    let node = work;
+                    ans.push_str(node);
+                    for (n, _) in cloned_job_map.iter() {
+                        job_map.get_mut(n).unwrap().remove(node);
+                        if job_map.get(n).unwrap().is_empty() && !visited.contains(n) {
+                            initial_nodes.insert(n);
+                            visited.insert(n);
+                        }
+                    }
+                    
+                }
+            }
+        }
+        
+        for (w, work) in workers.iter_mut() {
+            if *w == 0 && !initial_nodes.is_empty() {
+                
+                    let node = initial_nodes.pop_first().unwrap();
+                    *work = node;
+                    *w += 60 + (node.chars().next().unwrap() as i64 - b'A' as i64) + 1;
+                
+            }
+        } 
+        
+
+        // println!("{:?} {}", workers, time);
+        time += 1;
+        
+        
+    }
+    (time + workers.iter().max_by(|f, b| f.0.cmp(&b.0) ).unwrap().0) as usize - 1
+}
