@@ -1,4 +1,4 @@
-use std::{collections::{BTreeMap, HashMap}, fs};
+use std::{collections::{BTreeMap, HashMap, HashSet}, fs, ops::RangeBounds};
 
 macro_rules! hash_map {
     ($($k: expr => $v: expr ),+) => {{
@@ -24,7 +24,7 @@ fn main() {
         .map(|(i, l)| {
             l.iter()
                 .enumerate()
-                .filter(|(_, c)| **c == '>' || **c == '<' || **c == 'V' || **c == '^')
+                .filter(|(_, c)| **c == '>' || **c == '<' || **c == 'v' || **c == '^')
                 .map(|(j, _)| (i, j))
                 .collect::<Vec<_>>()
         })
@@ -32,16 +32,16 @@ fn main() {
         .flatten()
         .map(|f| (f, (grid_to_vec[f.0][f.1], 0)))
         .collect::<BTreeMap<_, _>>();
-
+    
     println!("{:?}", walk_the_walk(players, &grid_to_vec))
 }
 
 fn obstacle_to_new_arrow(obstacle: char, arrow: char, turn: usize) -> char {
     // intersection: L S R
     let my_map = hash_map!(
-        '\\' => hash_map!('V' => vec!['>'], '^' => vec!['<'], '>' => vec!['V'], '<' => vec!['^']), 
-        '/' => hash_map!('V' => vec!['<'], '^' => vec!['>'], '>' => vec!['^'], '<' => vec!['V']),
-        '+' => hash_map!('V' => vec!['>', 'V', '<'], '>' =>vec! ['^', '>', 'V'], '<' => vec!['V', '<', '^'], '^' => vec! ['<', '^', '>']));
+        '\\' => hash_map!('v' => vec!['>'], '^' => vec!['<'], '>' => vec!['v'], '<' => vec!['^']), 
+        '/' => hash_map!('v' => vec!['<'], '^' => vec!['>'], '>' => vec!['^'], '<' => vec!['v']),
+        '+' => hash_map!('v' => vec!['>', 'v', '<'], '>' =>vec! ['^', '>', 'v'], '<' => vec!['v', '<', '^'], '^' => vec! ['<', '^', '>']));
 
     match obstacle {
         '\\' | '/' => my_map.get(&obstacle).unwrap().get(&arrow).unwrap()[0],
@@ -56,21 +56,22 @@ fn walk_the_walk(
 ) -> (usize, usize) {
     loop {
         let mut players_after = BTreeMap::new();
+        let mut visited = HashSet::new();
         for ((y, x), (arrow, turn)) in players.iter() {
-            
+            visited.insert((*y, *x));
             let mut arrow = *arrow;
-
+            
             let (ny, nx) = match arrow {
                 '>' => (*y, *x + 1),
                 '^' => (*y - 1, *x),
                 '<' => (*y, *x - 1),
-                'V' => (*y + 1, *x),
+                'v' => (*y + 1, *x),
                 _ => (*y, *x),
             };
 
             arrow = obstacle_to_new_arrow(grid[ny][nx], arrow, *turn);
-
-            if players_after.contains_key(&(ny, nx)) || players.contains_key(&(ny, nx)) {                
+            // println!("{} {}", ny, nx);
+            if players_after.contains_key(&(ny, nx)) || (players.contains_key(&(ny, nx)) && !visited.contains(&(ny , nx))) {                
                 return (nx, ny);
             }
 
