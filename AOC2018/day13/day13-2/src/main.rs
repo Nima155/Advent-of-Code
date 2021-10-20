@@ -1,4 +1,7 @@
-use std::{collections::{BTreeMap, HashMap, HashSet}, fs};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    fs,
+};
 
 macro_rules! hash_map {
     ($($k: expr => $v: expr ),+) => {{
@@ -16,7 +19,7 @@ fn main() {
         .split("\r\n")
         .map(|l| l.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
-    
+
     // save the positions...
     let players = grid_to_vec
         .iter()
@@ -55,17 +58,18 @@ fn walk_the_walk(
     grid: &[Vec<char>],
 ) -> (usize, usize) {
     loop {
-        
         if players.len() == 1 {
-            println!("{:?}", players);
-            break;
+            let (y, x) = *players.iter().next().unwrap().0;
+            return (x, y);
         }
         let mut players_after = BTreeMap::new();
         let mut black_list = HashSet::new();
+        let mut visited = HashSet::new();
         for ((y, x), (arrow, turn)) in players.iter() {
             if !black_list.contains(&(*y, *x)) {
+                visited.insert((*y, *x));
                 let mut arrow = *arrow;
-    
+
                 let (ny, nx) = match arrow {
                     '>' => (*y, *x + 1),
                     '^' => (*y - 1, *x),
@@ -73,27 +77,28 @@ fn walk_the_walk(
                     'v' => (*y + 1, *x),
                     _ => (*y, *x),
                 };
-                
+
                 arrow = obstacle_to_new_arrow(grid[ny][nx], arrow, *turn);
                 // println!("{} {}", players_after.contains_key(&(ny, nx)), players.contains_key(&(ny, nx)));
-                match (players_after.contains_key(&(ny, nx)), players.contains_key(&(ny, nx))) {
+                match (
+                    players_after.contains_key(&(ny, nx)),
+                    players.contains_key(&(ny, nx)) && !visited.contains(&(ny, nx)),
+                ) {
                     (true, _) => {
                         players_after.remove(&(ny, nx));
                     }
                     (_, true) => {
                         black_list.insert((ny, nx));
                     }
-                    _ => { players_after.insert((ny, nx), (arrow, *turn + (grid[ny][nx] == '+') as usize)); }
-                }                
+                    _ => {
+                        players_after
+                            .insert((ny, nx), (arrow, *turn + (grid[ny][nx] == '+') as usize));
+                    }
+                }
             }
-                
-            
-
-            
         }
-        
+
         players = players_after;
     }
     (0, 0)
 }
-
