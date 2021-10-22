@@ -1,3 +1,29 @@
+macro_rules! reducer {
+    ($op: tt, register, $operations: expr, $registers: expr) => {{
+        let mut new_registers = $registers.clone();
+
+        new_registers[$operations[3] as usize] =
+            $registers[$operations[2] as usize] $op $registers[$operations[1] as usize];
+
+        Self {
+            registers: new_registers,
+            operation: $operations,
+        }
+    }};
+
+    ($op: tt, value, $operations: expr, $registers: expr) => {{
+        let mut new_registers = $registers.clone();
+
+        new_registers[$operations[3] as usize] =
+            $operations[2]  $op  $registers[$operations[1] as usize];
+
+        Self {
+            registers: new_registers,
+            operation: $operations,
+        }
+    }};
+}
+
 #[derive(Clone)]
 pub struct Controller {
     pub registers: Vec<i64>,
@@ -13,99 +39,35 @@ impl Controller {
     }
 
     pub fn add_i(self) -> Self {
-        let mut new_registers = self.registers.clone();
-
-        new_registers[self.operation[3] as usize] =
-            self.operation[2] + self.registers[self.operation[1] as usize];
-
-        Self {
-            registers: new_registers,
-            operation: self.operation,
-        }
+        reducer!(+, value, self.operation, self.registers)
     }
 
     pub fn add_r(self) -> Self {
-        let mut new_registers = self.registers.clone();
-
-        new_registers[self.operation[3] as usize] =
-            self.registers[self.operation[2] as usize] + self.registers[self.operation[1] as usize];
-
-        Self {
-            registers: new_registers,
-            operation: self.operation,
-        }
+        reducer!(+, register, self.operation, self.registers)
     }
 
     pub fn mul_i(self) -> Self {
-        let mut new_registers = self.registers.clone();
-
-        new_registers[self.operation[3] as usize] =
-            self.operation[2] * self.registers[self.operation[1] as usize];
-
-        Self {
-            registers: new_registers,
-            operation: self.operation,
-        }
+        reducer!(*, value, self.operation, self.registers)
     }
 
     pub fn mul_r(self) -> Self {
-        let mut new_registers = self.registers.clone();
-
-        new_registers[self.operation[3] as usize] =
-            self.registers[self.operation[2] as usize] * self.registers[self.operation[1] as usize];
-
-        Self {
-            registers: new_registers,
-            operation: self.operation,
-        }
+        reducer!(*, register, self.operation, self.registers)
     }
 
     pub fn ban_i(self) -> Self {
-        let mut new_registers = self.registers.clone();
-
-        new_registers[self.operation[3] as usize] =
-            self.operation[2] & self.registers[self.operation[1] as usize];
-
-        Self {
-            registers: new_registers,
-            operation: self.operation,
-        }
+        reducer!(&, value, self.operation, self.registers)
     }
 
     pub fn ban_r(self) -> Self {
-        let mut new_registers = self.registers.clone();
-
-        new_registers[self.operation[3] as usize] =
-            self.registers[self.operation[2] as usize] & self.registers[self.operation[1] as usize];
-
-        Self {
-            registers: new_registers,
-            operation: self.operation,
-        }
+        reducer!(&, register, self.operation, self.registers)
     }
 
     pub fn bor_i(self) -> Self {
-        let mut new_registers = self.registers.clone();
-
-        new_registers[self.operation[3] as usize] =
-            self.operation[2] | self.registers[self.operation[1] as usize];
-
-        Self {
-            registers: new_registers,
-            operation: self.operation,
-        }
+        reducer!(|, value, self.operation, self.registers)
     }
 
     pub fn bor_r(self) -> Self {
-        let mut new_registers = self.registers.clone();
-
-        new_registers[self.operation[3] as usize] =
-            self.registers[self.operation[2] as usize] | self.registers[self.operation[1] as usize];
-
-        Self {
-            registers: new_registers,
-            operation: self.operation,
-        }
+        reducer!(|, register, self.operation, self.registers)
     }
 
     pub fn set_r(self) -> Self {
@@ -218,11 +180,5 @@ impl Controller {
             registers: new_registers,
             operation: self.operation,
         }
-    }
-}
-
-impl PartialEq for Controller {
-    fn eq(&self, other: &Self) -> bool {
-        self.registers == other.registers
     }
 }
