@@ -4,16 +4,24 @@ fn main() {
     let pattern = fs::read_to_string("../input.txt").unwrap();
     
     let vectorified = &pattern[1..pattern.len()-1].chars().collect::<Vec<_>>();
+    let mut up_to = Vec::new();
+    let (paths, _) = map_builder(&vectorified, 0, &mut up_to, &find_groupings(&vectorified));
     
-    let paths = map_builder(&vectorified, 0, &find_groupings(&vectorified));
     // println!("{:?}", paths);
-    // println!("{:?}", paths);
-    let mut all_points: HashSet<(usize, usize)> = HashSet::new();
+    let mut all_points = HashSet::new();
 
-    for p in paths.iter() {
-        all_points.extend(path_to_point(p).iter());
-    }
-    // println!("{:?}", paths);
+    for p in paths {
+        let ret = path_to_point(&p);
+        all_points.extend(ret);
+    }   
+
+    
+    // let mut all_points: HashSet<(usize, usize)> = HashSet::new();
+
+    // for p in paths.iter() {
+    //     all_points.extend(path_to_point(p).iter());
+    // }
+    // // println!("{:?}", paths);
     let mut ans = 0;
     for targ in all_points.iter() {
         
@@ -65,75 +73,45 @@ fn shortest_path(paths: &HashSet<(usize, usize)>, goal: (usize, usize)) -> usize
     0   
 }
 
-fn map_builder(pattern: &[char], index: usize, paren_mappings: &HashMap<usize, usize>) -> Vec<String> {
-    let mut ans = vec![String::new()];
-    let (mut i, mut mark) = (index, -1);
-    let mut or_mode = false;
+fn map_builder(pattern: &[char], mut index: usize, up_to_now: &mut Vec<String>, parens :&HashMap<usize, usize>) -> (Vec<String>, usize) {
+
+    let mut ans = Vec::new();
+    let mut temp = vec![String::new()];
     
-    if index != 0 && pattern[index - 1] == '(' {
-        or_mode = true;
-    } 
-
-    while i < pattern.len() {
-        let c = pattern[i];
-        match c {
-            'N' | 'E' | 'S' | 'W' => {
-                if !or_mode {
-                    for s in ans.iter_mut() {
-                        if !or_mode || s.starts_with(&pattern[index..mark as usize]){
-
-                            s.push(c);
-                        }
-                    }
-                } else {
-                    if mark != - 1 {
-                        
-                        
-                        for s in ans.iter_mut() {
-                            if s.starts_with(&pattern[index..mark as usize]) {
-                                s.push(c);
-                            }
-                        }
-                        
-                    } else {
-                        
-                        ans.last_mut().unwrap().push(c);
-                    }
-                }
+    while index < pattern.len()
+    {
+        let c = pattern[index];
+        match  c {
+            '|' => {
+                ans.extend(temp.clone().into_iter());
+                temp = vec![String::new()];
             }
+
+            'S' | 'N' | 'E' | 'W'  => {
+                temp[0].push(pattern[index]);
+            }
+
             '(' => {
-                mark = i as i64;
-                let builds = map_builder(pattern, i + 1, paren_mappings);
-                let mut temp_ans = vec![];
-                if !or_mode {
-                    for g in ans.iter() {
-                        for gr in builds.iter() {            
-                            temp_ans.push(g.clone() + gr);
-                        }
-                    }
-                } else {
-                    temp_ans = ans[..ans.len() - 1].to_owned();
-                    for gr in builds.iter() {
-                        temp_ans.push(ans.last().unwrap().clone() + gr);
-                    }
+                let (vecs, indx) = map_builder(pattern, index + 1, up_to_now, parens);
+                let mut tmp = Vec::new();
+
+                for tm in vecs {
+                    tmp.push(temp[0].clone() + &tm);
                 }
-                i = *paren_mappings.get_key_value(&i).unwrap().1;
-                ans = temp_ans;
-                // println!("{:?} {:?}", ans, i);
+                temp = tmp;
+                index = indx;
             }
             ')' => {
-                return ans;
-            }
-            '|' => {
-                mark = -1;
-                ans.push(String::new());
+                ans.extend(temp.into_iter());
+                return (ans, index);
             }
             _ => {}
         }
-        i += 1;
+        index += 1;
     }
-    ans
-    
+    ans.extend(temp.into_iter());
+    (ans, index)
+
 }
 
 fn path_to_point(path: &str) -> HashSet<(usize, usize)> {
