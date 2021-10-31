@@ -1,6 +1,3 @@
-mod controller;
-use std::fs;
-
 fn main() {
     // println!("{:?}", part1);
     run_program();
