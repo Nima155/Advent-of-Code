@@ -22,7 +22,7 @@ with open("../input.txt", "r") as f:
     minox = optimizer.minimize(x)
     minoy = optimizer.minimize(y)
     minoz = optimizer.minimize(z)
-    # Gives the right answer after about a minute... just add up the values returned by the 2nd call to print and voile!
+    # Gives the right answer after about a minute... just add up the values returned by the 2nd call to print and voila!
     if optimizer.check() == z3.sat:
         print(v.value())
         print(minox.value(), minoz.value(), minoy.value())
