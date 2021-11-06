@@ -5,11 +5,13 @@
 
 #define ROW_LENGTH 30
 
-int *input_reader(FILE *file_handle) {
-    int *buffer = malloc(ROW_LENGTH * sizeof(int));
+
+int static_buffer[ROW_LENGTH] = { 0 };
+
+void input_reader(FILE *file_handle) {
 
     for (int i = 0; i < ROW_LENGTH; i++) {
-        buffer[i] = 0;
+        static_buffer[i] = 0;
     }
 
     int cur = 0, cur_num = 0, j = 0, i = 0;
@@ -20,24 +22,24 @@ int *input_reader(FILE *file_handle) {
             cur_num *= 10;
             cur_num += (cur - '0');
         } else if (cur_num != 0) {
-            buffer[j] = cur_num;
+            static_buffer[j] = cur_num;
             cur_num = 0;
             j++;
         }
         i++;
     }
-    buffer[j] = cur_num;
-    return buffer;
+    static_buffer[j] = cur_num;
+
 }
 
-int diff_finder(int row[]) {
+int diff_finder() {
     int min = INT_MAX, max = INT_MIN;
 
     for (int i = 0; i < ROW_LENGTH; i++) {
-        if (row[i] != 0) {
+        if (static_buffer[i] != 0) {
 
-            min = min > row[i] ? row[i]: min;
-            max = max < row[i] ? row[i]: max;
+            min = min > static_buffer[i] ? static_buffer[i]: min;
+            max = max < static_buffer[i] ? static_buffer[i]: max;
         }
     }
 
@@ -54,14 +56,15 @@ int main()
     }
     int ans = 0;
     while (1) {
-        int *temp = input_reader(f);
-        int tempz = diff_finder(temp);
 
-        free(temp);
+        input_reader(f);
+
+        int tempz = diff_finder();
 
         if (tempz == 0) {
             break;
         }
+
         ans += tempz;
 
     }
