@@ -1,6 +1,11 @@
 *.txt
 *.json
 *.TAG
+*.cbp
+*.depend
+*.layout
 debug/
 release/
 target/
+bin/
+obj/
