@@ -4,6 +4,8 @@
 *.cbp
 *.depend
 *.layout
+*.o
+*.exe
 debug/
 release/
 target/
