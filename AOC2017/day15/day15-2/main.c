@@ -37,7 +37,7 @@ long long value_generator(long long num, long long multiple, long long factor) {
 
     do {
         num = (num * factor) % MODULO;
-    } while(num % multiple != 0);
+    } while(num % multiple);
     return num;
 }
 
