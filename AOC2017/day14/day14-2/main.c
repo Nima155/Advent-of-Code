@@ -161,7 +161,7 @@ int main()
 {
     FILE *file_handle = fopen("input.txt", "r");
     char grid[GRID_SIZE + 1];
-    if (file_handle == NULL || grid == NULL) {
+    if (file_handle == NULL) {
         return 1;
     }
     *grid = '\0';
