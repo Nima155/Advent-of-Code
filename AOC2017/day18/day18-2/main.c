@@ -172,6 +172,7 @@ int main()
         }
     }
    int cycle = 0;
+
    while (1) {
        int bef_1 = cur_instrcution_indx_0, bef_2 = cur_instrcution_indx_1;
 
