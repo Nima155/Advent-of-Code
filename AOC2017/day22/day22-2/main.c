@@ -103,9 +103,7 @@ void spread_the_virus() {
         }
 
 
-        cur_node->state_of_being = cur_node->state_of_being == Clean ?
-                                   Weak: cur_node->state_of_being == Weak ? Infected:
-                                   cur_node->state_of_being == Infected ? Flagged: Clean;
+        cur_node->state_of_being = (cur_node->state_of_being + 1) % 4;
 
         infected_by_us += cur_node->state_of_being == Infected;
         y += moves[direction_indx][0];
