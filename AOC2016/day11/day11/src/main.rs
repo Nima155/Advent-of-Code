@@ -1,12 +1,20 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashSet, VecDeque},
     fs,
 };
 
-const ELEMENTS: [&str; 5] = ["thulium", "plutonium", "promethium", "strontium", "ruthenium"];
-
+const ELEMENTS: [&str; 5] = [
+    "thulium",
+    "plutonium",
+    "promethium",
+    "strontium",
+    "ruthenium",
+];
+// const ELEMENTS_2: [&str; 2] = [
+//     "hydrogen", "lithium"
+// ];
 fn main() {
     let lines = fs::read_to_string("../input.txt").unwrap();
 
@@ -25,7 +33,7 @@ fn main() {
             for item in temp_v {
                 if item.contains("generator") {
                     let ele = item.split(' ').next().unwrap();
-                    bit_set |= 1 << ELEMENTS.iter().position(|e| *e == ele).unwrap() + 5
+                    bit_set |= 1 << (ELEMENTS.iter().position(|e| *e == ele).unwrap() + 5)
                 } else {
                     let ele = item.split('-').next().unwrap();
                     bit_set |= 1 << ELEMENTS.iter().position(|e| *e == ele).unwrap()
@@ -34,194 +42,160 @@ fn main() {
             bit_set
         })
         .collect::<Vec<_>>();
-    
-    println!(
-        "{}",
-        search_and_move(
-            0,
-            [vc[0], vc[1], vc[2], vc[3]],
-            &mut HashMap::new(),
-            &mut HashSet::new()
-        )
-    );
+
+    println!("{}", search_and_move([vc[0], vc[1], vc[2], vc[3]], 5));
     // GET ALL TO 4TH floor
 }
 
-fn all_have_gens(floor_content: i64) -> bool {
-    for i in 0..5 {
-        if (floor_content & (1 << i)) != 0 && (floor_content & (1 << (i + 5))) == 0 {
-            return false;
+
+
+fn is_valid_combination(floors: [i64; 4], shift: i64) -> bool {
+    for i in 0..4 {
+        for j in 0..shift {
+            if (floors[i] & (1 << j)) != 0
+                && (floors[i] & 0b1111100000) != 0
+                && ((floors[i] & (1 << (j + shift))) == 0)
+            {
+                
+                return false;
+            }
         }
     }
     true
 }
 
-fn search_and_move(
-    cur_floor: i64,
-    floor_contents: [i64; 4],
-    cache: &mut HashMap<[i64; 4], i64>,
-    visited: &mut HashSet<[i64; 4]>,
-) -> i64 {
+fn search_and_move(floor_contents: [i64; 4], shift: i64) -> i64 {
+    let mut queue = VecDeque::new();
+    let mut visited = HashSet::new();
+    queue.push_back((floor_contents, 0, 0));
     
-    if floor_contents[3] == 0b1111111111 {
-        return 0;
-    }
-    if visited.contains(&floor_contents) {
-        return 1000007;
-    }
-    if cache.contains_key(&floor_contents) {
-        return *cache.get(&floor_contents).unwrap();
-    }
+    while !queue.is_empty() {
+        let (floors, steps, cur_floor) = queue.pop_front().unwrap();
+        
+        if !is_valid_combination(floors, shift) || visited.contains(&(floors, cur_floor)) {
+            continue;
+        }
 
-    let mut floor_conts = floor_contents;
-    let cur = floor_conts[cur_floor as usize];
-    visited.insert(floor_contents);
-    let mut ans = 100000007;
-    for i in 0..5 {
-        let (bef_fl, aft_fl) = (cur_floor - 1, cur_floor + 1);
-        let (generator_1, value_1) = (cur & (1 << (i + 5)) != 0, cur & (1 << i) != 0);
+        if floors[3] == 0b1111111111 {
+            return steps;
+        }
 
-        if value_1 && generator_1 {
-            if aft_fl < 4 && all_have_gens(floor_conts[aft_fl as usize]) {
-                floor_conts[cur_floor as usize] ^= (1 << i) | (1 << (i + 5));
-                floor_conts[aft_fl as usize] |= (1 << i) | (1 << (i + 5));
-                ans = i64::min(
-                    ans,
-                    1 + search_and_move(aft_fl, floor_conts, cache, visited),
-                );
-                floor_conts = floor_contents;
+        visited.insert((floors, cur_floor));
+        for i in 0..shift {
+            let (before, after): (i64, i64) = (cur_floor as i64 - 1, cur_floor as i64 + 1);
+            let mut floors_copy = floors;
+
+            let value = (floors[cur_floor] & (1 << i))  != 0;
+            let generator = (floors_copy[cur_floor] & (1 << (i + shift))) != 0;
+            
+            
+            if value && after < 4 {
+                floors_copy[cur_floor] ^= 1 << i;
+                floors_copy[after as usize] |= 1 << i;
+                if !visited.contains(&(floors_copy, after as usize)) {
+                    queue.push_back((floors_copy, steps + 1, after as usize));
+                }
+                floors_copy = floors;
             }
-            if bef_fl >= 0 && all_have_gens(floor_conts[bef_fl as usize]) {
-                floor_conts[cur_floor as usize] ^= (1 << i) | (1 << (i + 5));
-                floor_conts[bef_fl as usize] |= (1 << i) | (1 << (i + 5));
-                ans = i64::min(
-                    ans,
-                    1 + search_and_move(bef_fl, floor_conts, cache, visited),
-                );
-                floor_conts = floor_contents;
+            if value && before >= 0 {
+                floors_copy[cur_floor] ^= 1 << i;
+                floors_copy[before as usize] |= 1 << i;
+                if !visited.contains(&(floors_copy, before as usize)) {
+                    queue.push_back((floors_copy, steps + 1, before as usize));
+
+                }
+                floors_copy = floors;
             }
-        }
+            if generator && after < 4 {
+                floors_copy[cur_floor] ^= 1 << (i + shift);
+                floors_copy[after as usize] |= 1 << (i + shift);
+                if !visited.contains(&(floors_copy, after as usize))  {
 
-
-        if value_1
-            && aft_fl < 4
-            && ((floor_conts[aft_fl as usize] >> 5) == 0
-                || (floor_conts[aft_fl as usize] & 0b1111100000) >> (i + 5))
-        {
-            floor_conts[cur_floor as usize] ^= 1 << i;
-            floor_conts[aft_fl as usize] |= 1 << i;
-            ans = i64::min(
-                ans,
-                1 + search_and_move(aft_fl, floor_conts, cache, visited),
-            );
-            floor_conts = floor_contents;
-        }
-        if value_1
-            && bef_fl >= 0
-            && ((floor_conts[bef_fl as usize] >> 5) == 0
-                || (floor_conts[bef_fl as usize] & 0b1111100000) == (1 << (i + 5)))
-        {
-            floor_conts[cur_floor as usize] ^= 1 << i;
-            floor_conts[bef_fl as usize] |= 1 << i;
-            ans = i64::min(
-                ans,
-                1 + search_and_move(bef_fl, floor_conts, cache, visited),
-            );
-            floor_conts = floor_contents;
-        }
-
-
-        if generator_1 && aft_fl < 4 && all_have_gens(floor_conts[aft_fl as usize]) {
-            floor_conts[cur_floor as usize] ^= 1 << (i + 5);
-            floor_conts[aft_fl as usize] |= 1 << (i + 5);
-            ans = i64::min(
-                ans,
-                1 + search_and_move(aft_fl, floor_conts, cache, visited),
-            );
-            floor_conts = floor_contents;
-        }
-        if generator_1 && bef_fl >= 0 && all_have_gens(floor_conts[bef_fl as usize]) {
-            floor_conts[cur_floor as usize] ^= 1 << (i + 5);
-            floor_conts[bef_fl as usize] |= 1 << (i + 5);
-            ans = i64::min(
-                ans,
-                1 + search_and_move(bef_fl, floor_conts, cache, visited),
-            );
-            floor_conts = floor_contents;
-        }
-        for j in 0..5 {
-            let (generator_2, value_2) = (cur & (1 << (j + 5)) != 0, cur & (1 << j) != 0);
-            if i != j {
-                if generator_1
-                    && generator_2
-                    && !value_1
-                    && !value_2
-                    && aft_fl < 4
-                    && (floor_contents[aft_fl as usize] == ((1 << i) | (1 << j))
-                        || floor_contents[aft_fl as usize] & 0b0000011111 == 0)
-                {
-                    floor_conts[cur_floor as usize] ^= (1 << (i + 5)) | (1 << (j + 5));
-                    floor_conts[aft_fl as usize] |= (1 << (i + 5)) | (1 << (j + 5));
-                    ans = i64::min(
-                        ans,
-                        1 + search_and_move(aft_fl, floor_conts, cache, visited),
-                    );
-                    floor_conts = floor_contents;
+                    queue.push_back((floors_copy, steps + 1, after as usize));
                 }
+                floors_copy = floors;
+            }
+            if generator && before >= 0 {
+                floors_copy[cur_floor] ^= 1 << (i + shift);
+                floors_copy[before as usize] |= 1 << (i + shift);
+                if !visited.contains(&(floors_copy, before as usize)) {
 
-                if generator_1
-                    && generator_2
-                    && !value_1
-                    && !value_2
-                    && bef_fl >= 0
-                    && (floor_contents[bef_fl as usize] == (1 << i | 1 << j)
-                        || floor_contents[bef_fl as usize] & 0b0000011111 == 0)
-                {
-                    floor_conts[cur_floor as usize] ^= 1 << (i + 5) | 1 << (j + 5);
-                    floor_conts[bef_fl as usize] |= 1 << (i + 5) | 1 << (j + 5);
-                    ans = i64::min(
-                        ans,
-                        1 + search_and_move(bef_fl, floor_conts, cache, visited),
-                    );
-                    floor_conts = floor_contents;
+                    queue.push_back((floors_copy, steps + 1, before as usize));
                 }
-                if value_2
-                    && value_1
-                    && !generator_1
-                    && !generator_2
-                    && aft_fl < 4
-                    && (floor_contents[aft_fl as usize] >> 5 == 0
-                        || floor_contents[aft_fl as usize] & 0b1111100000
-                            == ((1 << (i + 5)) | (1 << (j + 5))))
-                {
-                    floor_conts[cur_floor as usize] ^= (1 << i) | (1 << j);
-                    floor_conts[aft_fl as usize] |= (1 << i) | (1 << j);
-                    ans = i64::min(
-                        ans,
-                        1 + search_and_move(aft_fl, floor_conts, cache, visited),
+                floors_copy = floors;
+            }
+
+            for j in 0..shift {
+                if i != j  {
+                    let (gen_2, val_2) = (
+                        (floors_copy[cur_floor] & (1 << (j + shift))) != 0,
+                        (floors_copy[cur_floor] & (1 << j)) != 0,
                     );
-                    floor_conts = floor_contents;
-                }
-                if value_2
-                    && value_1
-                    && !generator_1
-                    && !generator_2
-                    && bef_fl >= 0
-                    && (floor_contents[bef_fl as usize] >> 5 == 0
-                        || floor_contents[bef_fl as usize] & 0b1111100000
-                            == ((1 << (i + 5)) | (1 << (j + 5))))
-                {
-                    floor_conts[cur_floor as usize] ^= (1 << i) | (1 << j);
-                    floor_conts[bef_fl as usize] |= (1 << i) | (1 << j);
-                    ans = i64::min(
-                        ans,
-                        1 + search_and_move(bef_fl, floor_conts, cache, visited),
-                    );
-                    floor_conts = floor_contents;
+                    if gen_2 && value {
+                        if after < 4 {
+                            floors_copy[cur_floor] ^= (1 << i) | (1 << (j + shift));
+                            floors_copy[after as usize] |= (1 << i) | (1 << (j + shift));
+                            if !visited.contains(&(floors_copy, after as usize)) {
+
+                                queue.push_back((floors_copy, steps + 1, after as usize));
+                            }
+                            floors_copy = floors;
+                        }
+                        if before >= 0 {
+                            floors_copy[cur_floor] ^= (1 << i) | (1 << (j + shift));
+                            floors_copy[before as usize] |= (1 << i) | (1 << (j + shift));
+                            if !visited.contains(&(floors_copy, before as usize)) {
+
+                                queue.push_back((floors_copy, steps + 1, before as usize));
+                            }
+                            floors_copy = floors;
+                        }
+                    }
+                    if gen_2 && generator {
+                        if after < 4 {
+                            floors_copy[cur_floor] ^= (1 << (i + shift)) | (1 << (j + shift));
+                            floors_copy[after as usize] |= (1 << (i + shift)) | (1 << (j + shift));
+                            if !visited.contains(&(floors_copy, after as usize)) {
+
+                                queue.push_back((floors_copy, steps + 1, after as usize));
+                            }
+                            floors_copy = floors;
+                        }
+                        if before >= 0 {
+                            floors_copy[cur_floor] ^= (1 << (i + shift)) | (1 << (j + shift));
+                            floors_copy[before as usize] |= (1 << (i + shift)) | (1 << (j + shift));
+                            if !visited.contains(&(floors_copy, before as usize)) {
+
+                                queue.push_back((floors_copy, steps + 1, before as usize));
+                            }
+                            floors_copy = floors;
+                        }
+                    }
+
+                    if val_2 && value {
+                        if after < 4 {
+                            floors_copy[cur_floor] ^= (1 << (i)) | (1 << (j));
+                            floors_copy[after as usize] |= (1 << (i)) | (1 << (j));
+                            if !visited.contains(&(floors_copy, after as usize)) {
+
+                                queue.push_back((floors_copy, steps + 1, after as usize));
+                            }
+                            floors_copy = floors;
+                        }
+                        if before >= 0 {
+                            floors_copy[cur_floor] ^= (1 << (i)) | (1 << (j));
+                            floors_copy[before as usize] |= (1 << (i)) | (1 << (j));
+                            if !visited.contains(&(floors_copy, before as usize)) {
+
+                                queue.push_back((floors_copy, steps + 1, before as usize));
+                            }
+                            floors_copy = floors;
+                        }
+                    }
                 }
             }
         }
+        
     }
-    cache.insert(floor_contents, ans);
-    ans
+    0
 }
