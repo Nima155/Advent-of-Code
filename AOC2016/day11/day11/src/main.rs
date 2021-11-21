@@ -48,11 +48,11 @@ fn main() {
 }
 
 fn is_valid_combination(floors: [i64; 4], shift: i64) -> bool {
-    for i in 0..4 {
+    for i in floors{
         for j in 0..shift {
-            if (floors[i] & (1 << j)) != 0
-                && (floors[i] & 0b1111100000) != 0
-                && ((floors[i] & (1 << (j + shift))) == 0)
+            if (i & (1 << j)) != 0
+                && (i & 0b1111100000) != 0
+                && ((i & (1 << (j + shift))) == 0)
             {
                 return false;
             }
