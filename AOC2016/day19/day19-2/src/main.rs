@@ -30,7 +30,7 @@ fn simulate_process(participants: usize) {
         .0;
 
     println!(
-        "{:?}",
+        "{}",
         if even_participants == participants {
             ans
         } else {
