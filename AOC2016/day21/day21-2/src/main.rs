@@ -66,7 +66,7 @@ fn descramble(instructions: &[Vec<&str>], unscrambled_password: &mut Vec<char>) 
                         unscrambled_password,
                         ins.last().unwrap().chars().next().unwrap(),
                     );
-                    // this is will only work for one input.. i.e hardcoded
+                    // this is will only work on passwords of size 8. i.e hardcoded
                     match indx {
                         0 => unscrambled_password.rotate_left(1),
                         1 | 3 | 5 | 7 => unscrambled_password.rotate_left(indx / 2 + 1),
