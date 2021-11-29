@@ -72,6 +72,6 @@ fn execute_program(instructions: &[&str], registers: &mut [i64; 4]) -> bool {
         }
         i += 1;
     }
-    // println!("{} {}", "01".repeat(5), sample);
+    
     true
 }
