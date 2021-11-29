@@ -1,5 +1,5 @@
 use std::fs;
-// we modify our input to this: \" is used for padding
+// we modify our input to this: \" is used for padding.. we also add mul as a new type of instruction
 
 // cpy a b
 // dec b
