@@ -1,0 +1,2 @@
+
+    #     return copy.deepcopy(self)
