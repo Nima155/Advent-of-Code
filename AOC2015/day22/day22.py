@@ -1,6 +1,5 @@
-from collections import deque
 from copy import deepcopy
-import copy
+from RPG import RPG
 from heapq import heappop, heappush
 
 MAGIC_STORE = {
@@ -12,24 +11,6 @@ MAGIC_STORE = {
     "recharge": [229, 0, 0, 0, 101, 5]
 
 }
-
-class RPG:
-    def __init__(self, player_stats, enemy_stats):
-        self.player = player_stats
-        self.enemy = enemy_stats
-        self.actives = {}
-        self.turn = 0
-        self.spent_mana = 0
-    
-    def __lt__(self, other):
-        return self.spent_mana < other.spent_mana
-
-    def __gt__(self, other):
-        return self.spent_mana < other.spent_mana
-    
-    # def __copy__(self):
-    #     return copy.deepcopy(self)
-        
 
 # 737 too low!
 def fight():
@@ -67,7 +48,7 @@ def fight():
                 if rpg_stats.player["mana"] >= effect[0]:
                     # print(name, effect)
                     new_rpg = deepcopy(rpg_stats)
-                    new_rpg.actives = rpg_stats.actives
+                    
                     
                     if name in ["missile", "drain"]:
                         new_rpg.player["hp"] += effect[2]
