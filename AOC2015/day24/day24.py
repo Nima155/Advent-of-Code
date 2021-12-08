@@ -11,23 +11,20 @@ TOTAL_SUM_DIV_3 = sum(INPUT) // 3
 def find_optimal_arrangement():
     queue = deque([[[0, 0, 1], [0, 0, 1], [0, 0, 1]]])
     
-    while queue and INPUT:
-        groups = queue.popleft()
-        
-        if all(v[0] == TOTAL_SUM_DIV_3 for v in groups):
-            print(groups)
-            continue
-
+    while INPUT:
         n = INPUT.pop()    
-        
-        for i in range(3):
-            if groups[i][0] + n <= TOTAL_SUM_DIV_3:
-                
-                groupz = deepcopy(groups)
-                groupz[i][0] += n
-                groupz[i][1] += 1
-                groupz[i][2] *= n
-                queue.append(groupz)
+        n_queue = deque()
+        while queue:
+            groups = queue.popleft()
+            for i in range(3):
+                if groups[i][0] + n <= TOTAL_SUM_DIV_3:
+                    groupz = deepcopy(groups)
+                    groupz[i][0] += n
+                    groupz[i][1] += 1
+                    groupz[i][2] *= n
+                    n_queue.append(groupz)
+        queue = n_queue
+        print(len(INPUT))
     print(sorted(queue))
 
 
