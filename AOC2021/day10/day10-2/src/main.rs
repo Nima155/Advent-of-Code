@@ -51,10 +51,6 @@ fn calculate_score(
         }
     }
 
-    let mut tots_score = 0;
 
-    for b in stack.iter().rev() {
-        tots_score = tots_score * 5 + scores[b];
-    }
-    tots_score
+    stack.iter().rev().fold(0, |acc, cur| acc * 5 + scores[cur])
 }
