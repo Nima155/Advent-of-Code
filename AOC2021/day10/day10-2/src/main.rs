@@ -1,4 +1,4 @@
-use std::{fs, collections::HashMap};
+use std::{collections::HashMap, fs};
 
 macro_rules! hashmap {
     ($($k: expr => $v: expr),*) => {{
@@ -8,16 +8,13 @@ macro_rules! hashmap {
     }}
 }
 
-
-
 fn main() {
     let lines = fs::read_to_string("../input.txt").unwrap();
     let lines = lines
         .split("\r\n")
         .map(|l| l.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
-   
- 
+
     let scores = hashmap!( '{' => 3, '<' => 4, '[' => 2, '(' => 1);
     let opposites = hashmap!('}' => '{', ']' => '[', ')' => '(', '>' => '<');
 
@@ -31,11 +28,13 @@ fn main() {
     score_list.sort_unstable();
 
     println!("{}", score_list[score_list.len() / 2]);
-
-
 }
 
-fn calculate_score(scores: &HashMap<char, i128>, opposites: &HashMap<char, char>, line: &[char]) -> i128 {
+fn calculate_score(
+    scores: &HashMap<char, i128>,
+    opposites: &HashMap<char, char>,
+    line: &[char],
+) -> i128 {
     let mut stack = Vec::new();
 
     for brack in line {
@@ -44,19 +43,18 @@ fn calculate_score(scores: &HashMap<char, i128>, opposites: &HashMap<char, char>
                 stack.push(*brack);
             }
             _ => {
-                if stack.is_empty() || opposites[brack] != *stack.last().unwrap()  {
+                if stack.is_empty() || opposites[brack] != *stack.last().unwrap() {
                     return 0;
                 }
                 stack.pop();
             }
         }
     }
-    
 
     let mut tots_score = 0;
 
     for b in stack.iter().rev() {
-        tots_score =  tots_score * 5 + scores[&b];
+        tots_score = tots_score * 5 + scores[b];
     }
     tots_score
-} 
+}
