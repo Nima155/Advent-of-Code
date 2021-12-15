@@ -13,7 +13,7 @@ fn main() {
         .collect::<Vec<_>>();
 
     expand_grid(&mut last_grid);
-    
+
     println!("{}", shortest_path(&last_grid));
 }
 
@@ -53,9 +53,7 @@ fn expand_grid(last_grid: &mut Vec<Vec<i64>>)  {
         }
 
         if i + rr < rr * 5 {
-            for r in temp_grid {
-                last_grid.push(r);
-            }
+            last_grid.extend(temp_grid);
         }
 
         j = 0;
