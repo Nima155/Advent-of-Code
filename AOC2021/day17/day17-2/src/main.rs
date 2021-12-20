@@ -25,6 +25,7 @@ fn highest_y_reached(mut velocity: (i64, i64)) -> i64 {
     let (mut x, mut y) = (0, 0);
 
     let mut max_y = i64::MIN;
+    
     while x <= X_MAX && y >= Y_MIN {
         max_y = i64::max(max_y, y);
         if X_MIN <= x && x <= X_MAX && Y_MIN <= y && y <= Y_MAX {
