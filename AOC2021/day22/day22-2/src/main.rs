@@ -1,5 +1,8 @@
 use std::fs;
 
+
+
+// Adapted from https://www.youtube.com/watch?v=YKpViLcTp64
 fn main() {
     let instructions = fs::read_to_string("../input.txt").unwrap();
     let instructions = instructions
@@ -74,6 +77,7 @@ fn work_with_compressed(
             }
         }
     }
+
     let mut ans = 0;
     for (x, row) in three_d_space.iter().enumerate() {
         for (y, row_1) in row.iter().enumerate() {
