@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fs};
 fn main() {
-    let instructions = fs::read_to_string("../input.txt").unwrap();
+    let instructions = fs::read_to_string("./test.txt").unwrap();
     let instructions = instructions
         .split("\r\n")
         .map(|l| {
