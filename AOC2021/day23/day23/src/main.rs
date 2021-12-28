@@ -1,5 +1,5 @@
 use std::{
-    collections::{BinaryHeap, HashMap},
+    collections::{ HashMap, VecDeque},
     fs,
 };
 
@@ -44,11 +44,11 @@ const FINAL_STATE: [[char; 13]; 7] = [
 const PERMISSIBLE_COLUMNS: [usize; 4] = [3, 5, 7, 9];
 fn bfs(board: &[Vec<char>]) -> i64 {
     let mut visited = HashMap::new();
-    let mut queue = BinaryHeap::new();
-    queue.push((0, board.to_owned()));
+    let mut queue = VecDeque::new();
+    queue.push_back((0, board.to_owned()));
     let mut ans = i64::MAX;
     while !queue.is_empty() {
-        let (steps, board) = queue.pop().unwrap();
+        let (steps, board) = queue.pop_front().unwrap();
         // println!
         if board == FINAL_STATE {
             ans = i64::min(ans, steps);
@@ -72,7 +72,7 @@ fn bfs(board: &[Vec<char>]) -> i64 {
                         if !visited.contains_key(&v) || (steps + costs) < *visited.get(&v).unwrap()
                         {
                             visited.insert(v.clone(), costs + steps);
-                            queue.push((costs + steps, v));
+                            queue.push_back((costs + steps, v));
                         }
                     }
                 }
