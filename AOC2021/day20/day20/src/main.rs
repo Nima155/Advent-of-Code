@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     fs,
 };
 fn main() {
@@ -29,7 +29,7 @@ fn main() {
         big_input_grid[*y as usize][*x as usize] = *v;
     }
 
-    for i in 0..2 {
+    for _ in 0..2 {
         expand(&mut big_input_grid, &algo_string);
     }
     println!(
@@ -37,8 +37,8 @@ fn main() {
         big_input_grid
             .iter()
             .enumerate()
-            .filter(|(i, r)| *i >= 23 && *i <= 127)
-            .map(|(i, row)| {
+            .filter(|(i, _)| *i >= 23 && *i <= 127)
+            .map(|(_, row)| {
                 row.iter()
                     .enumerate()
                     .filter(|(j, c)| *j >= 23 && *j <= 127 && **c == '#')
@@ -54,12 +54,12 @@ fn expand(big_input_grid: &mut Vec<Vec<char>>, algorithm: &[char]) {
     let mut clone = big_input_grid.to_owned();
 
     for (i, r) in big_input_grid.iter().enumerate() {
-        for (j, c) in r.iter().enumerate() {
+        for (j, _) in r.iter().enumerate() {
             let mut shift = 0;
             let mut indx_in_algo = 0;
             if i != 0 && j != 0 && i + 1 < big_input_grid.len() && j + 1 < big_input_grid.len()  {
                 for indx_1 in (-1..2).rev() {
-                    for indx_2 in (-1..2).rev() {
+                    for indx_2 in (-1..2).rev() 
                         {
                             let is_hash = big_input_grid[(i as i64 + indx_1) as usize]
                                 [(j as i64 + indx_2) as usize]
@@ -67,7 +67,7 @@ fn expand(big_input_grid: &mut Vec<Vec<char>>, algorithm: &[char]) {
                             indx_in_algo |= (is_hash as i64) << shift;
                             shift += 1;
                         }
-                    }
+                    
                 }
                 clone[i][j] = algorithm[indx_in_algo as usize];
             } 
