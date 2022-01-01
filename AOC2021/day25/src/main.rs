@@ -1,4 +1,4 @@
-use std::{fs, ops::RangeBounds};
+use std::fs;
 
 fn main() {
     let grid = fs::read_to_string("./input.txt").unwrap();
