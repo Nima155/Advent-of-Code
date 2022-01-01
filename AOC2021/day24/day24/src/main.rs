@@ -4,7 +4,7 @@ fn main() {
     println!("{:?}", recursive_builder(&mut registers, 0, 0));
 }
 
-const DISTINCT_INSTRUCTIONS: [[i64; 3]; 14] = [
+const DISTINCT_INSTRUCTIONS: [[i64; 3]; 14] = [ // this may vary for your input!
     [1, 13, 10],
     [1, 11, 16],
     [1, 11, 0],
