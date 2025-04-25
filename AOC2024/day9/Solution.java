@@ -2,12 +2,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.stream.Stream;
 
 public class Solution {
 
@@ -30,10 +27,10 @@ public class Solution {
         // Stream.of(arr).forEach(System.out::println);
         for (int i = 0; i < sb.length(); i += 2) {
             // System.err.println(sb.charAt(i));
-            if (arr[i] == -1) {
+           
                 arr[i] = id;
                 id++;
-            }  
+             
         }
         // for (int i: arr) System.out.println(i);
         
@@ -66,7 +63,6 @@ public class Solution {
             
             j--;
         }
-        System.out.println(ls);
         Long ans = 0L;
         for (int i = 0; i < ls.size(); i++) {
 
